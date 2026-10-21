@@ -31,6 +31,24 @@ html {
   touch-action: manipulation;
 }
 
+/* Printing shows only <PrintSheet>: plain black on white, A4 with sensible margins. */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+@media print {
+  html, body {
+    background: #fff;
+    color: #000;
+  }
+  .print-sheet table {
+    page-break-inside: auto;
+  }
+  .print-sheet tr {
+    page-break-inside: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation: none !important;

@@ -13,7 +13,22 @@ function Fact({ label, children, wide }) {
   )
 }
 
-export default function ResultCard({ t, match }) {
+function AddButton({ t, inList, onAdd, onOpenList }) {
+  const base = `flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 text-lg font-semibold
+    transition active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4`
+  return inList ? (
+    <button type="button" onClick={onOpenList}
+      className={`${base} border-2 border-emerald-800 bg-white text-emerald-900 focus-visible:ring-emerald-700/40`}>
+      <Icon name="check" />{t('inList')}
+    </button>
+  ) : (
+    <button type="button" onClick={onAdd} className={`${base} bg-emerald-800 text-white focus-visible:ring-emerald-700/40`}>
+      <Icon name="plus" />{t('addToList')}
+    </button>
+  )
+}
+
+export default function ResultCard({ t, match, inList, onAdd, onOpenList }) {
   const { drug, confidence } = match
   return (
     <article className="animate-rise overflow-hidden rounded-3xl border-2 border-emerald-800/15 bg-white shadow-sm">
@@ -35,6 +50,10 @@ export default function ResultCard({ t, match }) {
           <Fact label={t('nppa')} wide>{formatInr(drug.nppaCeilingPriceInr)}</Fact>
         )}
       </dl>
+
+      <div className="px-5 pb-4">
+        <AddButton t={t} inList={inList} onAdd={onAdd} onOpenList={onOpenList} />
+      </div>
 
       <p className="border-t border-slate-200 px-5 py-3 text-sm text-slate-600">
         {t('source')}: {drug.source} · {t('updated')}: {drug.lastUpdated}
