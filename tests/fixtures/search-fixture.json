@@ -1,0 +1,14 @@
+{
+  "_note": "TEST-ONLY fixture for name matching. Not shipped, contains no prices. Real brand names are used only to test that common spellings match the right molecule.",
+  "drugs": [
+    { "id": "t-pantocid-40", "brandName": "Pantocid 40", "aliases": ["पैंटोसिड"], "molecule": "Pantoprazole", "strength": "40 mg", "form": "tablet" },
+    { "id": "t-pan-40", "brandName": "Pan 40", "aliases": [], "molecule": "Pantoprazole", "strength": "40 mg", "form": "tablet" },
+    { "id": "t-augmentin-625", "brandName": "Augmentin 625 Duo", "aliases": ["ऑगमेंटिन"], "molecule": "Amoxicillin + Clavulanic Acid", "strength": "500 mg + 125 mg", "form": "tablet" },
+    { "id": "t-augmentin-375", "brandName": "Augmentin 375", "aliases": [], "molecule": "Amoxicillin + Clavulanic Acid", "strength": "250 mg + 125 mg", "form": "tablet" },
+    { "id": "t-dolo-650", "brandName": "Dolo 650", "aliases": ["डोलो"], "molecule": "Paracetamol", "strength": "650 mg", "form": "tablet" },
+    { "id": "t-calpol-500", "brandName": "Calpol 500", "aliases": ["कैलपोल"], "molecule": "Paracetamol", "strength": "500 mg", "form": "tablet" },
+    { "id": "t-crocin-advance", "brandName": "Crocin Advance", "aliases": [], "molecule": "Paracetamol", "strength": "500 mg", "form": "tablet" },
+    { "id": "t-azithral-500", "brandName": "Azithral 500", "aliases": [], "molecule": "Azithromycin", "strength": "500 mg", "form": "tablet" },
+    { "id": "t-azithral-250", "brandName": "Azithral 250", "aliases": [], "molecule": "Azithromycin", "strength": "250 mg", "form": "tablet" }
+  ]
+}
