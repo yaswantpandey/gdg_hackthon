@@ -57,6 +57,20 @@ test('model down or slow → friendly reason', async () => {
   assert.equal((await ocr(JPEG)).json.reason, 'model_unavailable')
 })
 
+test('API responses carry hardening headers', async () => {
+  const res = await fetch(`${base}/api/health`)
+  assert.equal(res.headers.get('x-content-type-options'), 'nosniff')
+  assert.equal(res.headers.get('cache-control'), 'no-store')
+  assert.match(res.headers.get('content-security-policy'), /default-src 'none'/)
+  assert.equal(res.headers.get('x-powered-by'), null)
+})
+
+test('CORS: unknown origins get no allow header and a 403 preflight', async () => {
+  const pre = await fetch(`${base}/api/ocr`, { method: 'OPTIONS', headers: { Origin: 'https://evil.example' } })
+  assert.equal(pre.status, 403)
+  assert.equal(pre.headers.get('access-control-allow-origin'), null)
+})
+
 test('rate limit → 429 rate_limited', async () => {
   reply = async () => '{"name":"Demo"}'
   const statuses = []

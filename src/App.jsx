@@ -6,6 +6,7 @@ import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import SearchView from './components/SearchView.jsx'
 import PrescriptionView from './components/PrescriptionView.jsx'
+import AboutView, { datasetFacts } from './components/AboutView.jsx'
 import PrintSheet from './components/PrintSheet.jsx'
 import ListChip from './components/ListChip.jsx'
 import Disclaimer from './components/Disclaimer.jsx'
@@ -18,7 +19,10 @@ import { prescriptionTotals } from './lib/prescription.js'
 
 const search = createSearch(dataset.drugs)
 const EXAMPLES = dataset.drugs.slice(0, 3).map((d) => d.brandName)
+const DATA_FACTS = datasetFacts(dataset)
 const AUTO_PICK = 0.9 // show the card straight away only for a clear winner
+const SCREENS = ['list', 'about'] // screens on top of search, each a history entry
+const screenFromHistory = (state) => (SCREENS.includes(state?.view) ? state.view : 'search')
 
 // localStorage can throw in private mode; preferences are a nice-to-have.
 function readPref(key, fallback) {
@@ -43,8 +47,8 @@ export default function App() {
   const { canInstall, install } = useInstallPrompt()
   const [query, setQuery] = useState(() => new URLSearchParams(location.search).get('q') ?? '') // ?q= deep link
   const [picked, setPicked] = useState(null) // { query, id }: only valid for the query it was made on
-  // 'search' | 'list'. Read from history so a reload on the list stays on the list and back still works.
-  const [view, setView] = useState(() => (history.state?.view === 'list' ? 'list' : 'search'))
+  // 'search' | 'list' | 'about'. Read from history so a reload stays put and back still works.
+  const [view, setView] = useState(() => screenFromHistory(history.state))
   const scroller = useRef(null)
   const searchInput = useRef(null)
   const t = useMemo(() => makeT(lang), [lang])
@@ -67,20 +71,31 @@ export default function App() {
   // New result or screen → start at the top.
   useEffect(() => { scroller.current?.scrollTo({ top: 0 }) }, [selected?.drug.id, view])
 
-  // The list is a history entry, so Android's back button returns to search.
+  // Each screen is a history entry, so Android's back button returns to search.
   useEffect(() => {
-    const onPop = (e) => setView(e.state?.view === 'list' ? 'list' : 'search')
+    const onPop = (e) => setView(screenFromHistory(e.state))
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
-  const openList = () => { history.pushState({ view: 'list' }, ''); setView('list') }
-  const backToSearch = () => (history.state?.view === 'list' ? history.back() : setView('search'))
+  const openScreen = (name) => {
+    if (view === name) return
+    if (view === 'search') history.pushState({ view: name }, '')
+    else history.replaceState({ view: name }, '') // one back press still reaches search
+    setView(name)
+  }
+  const openList = () => openScreen('list')
+  const backToSearch = () => (SCREENS.includes(history.state?.view) ? history.back() : setView('search'))
 
-  // Typing always means search: it takes over from a scan and from the list screen.
+  // Typing always means search: it takes over from a scan and from other screens.
   const onType = (value) => {
     setQuery(value)
     if (scan.status === 'failed') clearScan()
-    if (view === 'list') backToSearch()
+    if (view !== 'search') backToSearch()
+  }
+  // A new photo is a new search too: show its progress and result on the search screen.
+  const onPhoto = (file) => {
+    if (view !== 'search') backToSearch()
+    startScan(file)
   }
   const focusSearch = (selectAll) => {
     clearScan()
@@ -105,7 +120,9 @@ export default function App() {
           {/* Content grows upward from the search bar, so the thing to tap is near the thumb. */}
           <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
             <div className="mx-auto mt-auto flex w-full max-w-md flex-col gap-4">
-              {view === 'list' ? (
+              {view === 'about' ? (
+                <AboutView t={t} facts={DATA_FACTS} onBack={backToSearch} />
+              ) : view === 'list' ? (
                 <PrescriptionView t={t} totals={totals} offline={offline} onBack={backToSearch}
                   onPacks={list.setPacks} onRemove={list.remove} onClear={list.clear} onPrint={() => window.print()} />
               ) : (
@@ -130,8 +147,8 @@ export default function App() {
               <ListChip t={t} count={totals.lines.length} saved={totals.saved} onOpen={openList} />
             )}
             <SearchBar t={t} value={query} onChange={onType} inputRef={searchInput}
-              onPhoto={startScan} scanning={scan.status === 'reading'} />
-            <Disclaimer t={t} />
+              onPhoto={onPhoto} scanning={scan.status === 'reading'} />
+            <Disclaimer t={t} onAbout={() => openScreen('about')} />
           </div>
         </footer>
       </div>

@@ -23,13 +23,32 @@ export function createApp(config, askModel) {
     next()
   })
 
+  // Every response is small JSON: never sniffed, never cached, never framed or rendered.
+  app.use((_req, res, next) => {
+    res.set({
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'no-store',
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+      'Referrer-Policy': 'no-referrer',
+    })
+    next()
+  })
+
   // CORS for a deployed frontend on another origin; same-origin dev uses the Vite proxy.
+  // CORS only limits browsers; the rate limit and HOST binding protect against direct calls.
   app.use((req, res, next) => {
     const origin = req.get('origin')
-    if (origin && config.allowedOrigins.includes(origin)) {
-      res.set({ 'Access-Control-Allow-Origin': origin, Vary: 'Origin', 'Access-Control-Allow-Headers': 'Content-Type' })
+    const allowed = Boolean(origin) && config.allowedOrigins.includes(origin)
+    res.vary('Origin')
+    if (allowed) {
+      res.set({
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '600',
+      })
     }
-    if (req.method === 'OPTIONS') return res.sendStatus(204)
+    if (req.method === 'OPTIONS') return res.sendStatus(allowed ? 204 : 403)
     next()
   })
 

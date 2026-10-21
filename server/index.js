@@ -8,6 +8,9 @@ const provider = env.GEMMA_PROVIDER === 'hosted' ? 'hosted' : 'ollama'
 
 const config = {
   port: Number(env.PORT) || 8787,
+  // Loopback by default: on shared Wi-Fi (hackathon!) nobody else can spend our model quota.
+  // Set HOST=0.0.0.0 only when deploying behind HTTPS.
+  host: env.HOST || '127.0.0.1',
   provider,
   model: env.GEMMA_MODEL || (provider === 'hosted' ? 'gemma-4-26b-a4b-it' : 'gemma4:e2b'),
   ollamaUrl: env.OLLAMA_URL || 'http://localhost:11434',
@@ -26,6 +29,10 @@ if (provider === 'hosted' && !config.apiKey) {
   process.exit(1)
 }
 
-createApp(config, createGemma(config)).listen(config.port, () => {
-  console.log(`OCR proxy on http://localhost:${config.port} · ${provider} · ${config.model}`)
+const server = createApp(config, createGemma(config)).listen(config.port, config.host, () => {
+  console.log(`OCR proxy on http://${config.host}:${config.port} · ${provider} · ${config.model}`)
 })
+// Drop clients that send their request too slowly (slowloris). Covers receiving the
+// request only; the model call has its own OCR_TIMEOUT_MS.
+server.headersTimeout = 15_000
+server.requestTimeout = 30_000
