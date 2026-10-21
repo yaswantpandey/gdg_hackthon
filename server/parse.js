@@ -11,19 +11,33 @@ function cleanField(value, maxLength) {
   return s ? s.slice(0, maxLength) : null
 }
 
-/** Pulls the first {...} block out of replies like "```json\n{...}\n```" or "Sure! {...}". */
-function firstJsonObject(text) {
-  const start = text.indexOf('{')
-  const end = text.lastIndexOf('}')
-  if (start === -1 || end <= start) return null
-  const raw = text.slice(start, end + 1)
-  // The prompt itself shows {name: null}, so models sometimes copy unquoted keys.
+/** Parses one {...} block; the prompt itself shows {name: null}, so also try with keys quoted. */
+function tryParse(raw) {
   const quotedKeys = raw.replace(/([{,]\s*)([A-Za-z_]\w*)\s*:/g, '$1"$2":')
   for (const candidate of [raw, quotedKeys]) {
     try {
       const value = JSON.parse(candidate)
       if (value && typeof value === 'object' && !Array.isArray(value)) return value
     } catch { /* try the next form */ }
+  }
+  return null
+}
+
+/**
+ * Returns the first parseable top-level {...} block, so chatter like
+ * "I'll reply {name, strength}… ```json {"name": …}```" still works.
+ */
+function firstJsonObject(text) {
+  for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
+    let depth = 0
+    for (let i = start; i < text.length; i++) {
+      if (text[i] === '{') depth++
+      else if (text[i] === '}' && --depth === 0) {
+        const value = tryParse(text.slice(start, i + 1))
+        if (value) return value
+        break
+      }
+    }
   }
   return null
 }

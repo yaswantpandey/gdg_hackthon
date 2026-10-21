@@ -12,6 +12,7 @@ const config = {
   model: env.GEMMA_MODEL || (provider === 'hosted' ? 'gemma-4-26b-a4b-it' : 'gemma4:e2b'),
   ollamaUrl: env.OLLAMA_URL || 'http://localhost:11434',
   apiKey: env.GEMMA_API_KEY || '',
+  thinking: env.GEMMA_THINKING ?? 'minimal', // hosted only; set empty to let the model think
   timeoutMs: Number(env.OCR_TIMEOUT_MS) || 60_000, // first local call also loads the model
   maxImageBytes: Number(env.MAX_IMAGE_BYTES) || 2_000_000,
   ratePerMin: Number(env.RATE_LIMIT_PER_MIN) || 10,

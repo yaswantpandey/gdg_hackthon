@@ -45,11 +45,15 @@ async function askOllama(image, _mime, config) {
 /** Hosted Gemma via the Gemini API (Google AI Studio key). */
 async function askHosted(image, mime, config) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent`
+  const generationConfig = { temperature: 0 }
+  // Gemma 4 "thinks" before answering; for reading a label that costs ~10 s for no gain.
+  if (config.thinking) generationConfig.thinkingConfig = { thinkingLevel: config.thinking }
   const data = await post(url, {
     contents: [{ parts: [{ inline_data: { mime_type: mime, data: image.toString('base64') } }, { text: PROMPT }] }],
-    generationConfig: { temperature: 0 },
+    generationConfig,
   }, { 'x-goog-api-key': config.apiKey }, config.timeoutMs)
-  return (data?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? '').join('')
+  // Skip the model's reasoning parts; only the final answer is parsed.
+  return (data?.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? '').join('')
 }
 
 /** Returns a function (imageBuffer, mime) → raw reply text, for the configured provider. */

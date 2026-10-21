@@ -13,6 +13,11 @@ test('JSON wrapped in a code fence or chatter', () => {
     { name: 'Dolo 650', strength: '650mg' })
 })
 
+test('skips chatter that contains braces before the real JSON', () => {
+  const reply = 'The prompt wants {name, strength}. Here: ```json\n{"name": "Democillin", "strength": "500 mg"}\n```'
+  assert.deepEqual(parseModelReply(reply), { name: 'Democillin', strength: '500 mg' })
+})
+
 test('unquoted keys, as in the prompt example', () => {
   assert.deepEqual(parseModelReply('{name: "Pantocid 40", strength: "40 mg"}'), { name: 'Pantocid 40', strength: '40 mg' })
 })
