@@ -1,5 +1,6 @@
-import hi from './hi.json'
-import en from './en.json'
+// `with { type: 'json' }` lets both Vite and plain Node (tests) load these.
+import hi from './hi.json' with { type: 'json' }
+import en from './en.json' with { type: 'json' }
 
 const DICTS = { hi, en }
 export const LANGS = Object.keys(DICTS)
