@@ -2,6 +2,7 @@ import Icon from './Icon.jsx'
 import KendraLinks from './KendraLinks.jsx'
 import { formatInr } from '../lib/price.js'
 import { MAX_PACKS } from '../lib/prescription.js'
+import { useFocusOnMount } from '../lib/useFocusOnMount.js'
 
 const stepClass = `grid size-12 cursor-pointer place-items-center rounded-xl border-2 border-slate-300 text-slate-900
   transition active:scale-95 active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40
@@ -69,6 +70,7 @@ function Line({ t, line, onPacks, onRemove }) {
 
 export default function PrescriptionView({ t, totals, offline, onBack, onPacks, onRemove, onClear, onPrint }) {
   const empty = totals.lines.length === 0 && totals.missing.length === 0
+  const heading = useFocusOnMount()
   return (
     <section className="flex flex-col gap-4" aria-labelledby="list-title">
       <div className="flex items-center gap-2">
@@ -77,7 +79,7 @@ export default function PrescriptionView({ t, totals, offline, onBack, onPacks, 
             focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/40">
           <Icon name="arrowLeft" />
         </button>
-        <h2 id="list-title" className="text-2xl font-bold text-slate-900">{t('myList')}</h2>
+        <h2 id="list-title" ref={heading} tabIndex={-1} className="text-2xl font-bold text-slate-900 outline-none">{t('myList')}</h2>
       </div>
 
       {empty ? (

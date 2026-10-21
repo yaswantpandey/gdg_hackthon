@@ -16,12 +16,12 @@ export default function SearchBar({ t, value, onChange, inputRef, onPhoto, scann
       role="search"
       onSubmit={(e) => { e.preventDefault(); inputRef.current?.blur() }} // hide keyboard, reveal result
     >
-      <label htmlFor="q" className="mb-1.5 block text-sm font-semibold text-slate-800">
+      <label htmlFor="q" className="mb-1.5 block text-sm font-semibold text-slate-800 short:sr-only">
         {t('searchLabel')}
       </label>
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
-          <Icon name="search" className="pointer-events-none absolute left-4 top-1/2 size-6 -translate-y-1/2 text-slate-500" />
+          <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
           <input
             ref={inputRef}
             id="q"
@@ -35,7 +35,8 @@ export default function SearchBar({ t, value, onChange, inputRef, onPhoto, scann
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={t('searchPlaceholder')}
-            className={`h-16 w-full rounded-2xl border-2 border-slate-300 bg-white pl-13 ${value ? 'pr-14' : 'pr-3'} text-xl text-slate-900
+            className={`h-16 w-full rounded-2xl border-2 border-slate-300 bg-white pl-10 ${value ? 'pr-13' : 'pr-3'} text-lg text-slate-900
+              short:h-12
               placeholder:text-slate-500 transition-colors duration-150
               focus:border-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-700/25
               [&::-webkit-search-cancel-button]:hidden`}
@@ -58,7 +59,7 @@ export default function SearchBar({ t, value, onChange, inputRef, onPhoto, scann
           type="button"
           onClick={() => fileInput.current?.click()}
           disabled={scanning}
-          className="flex h-16 w-18 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl bg-emerald-800
+          className="flex h-16 w-[4.25rem] shrink-0 short:h-12 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl bg-emerald-800
             text-white transition active:scale-95 disabled:cursor-wait disabled:opacity-50
             focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-700/40"
         >

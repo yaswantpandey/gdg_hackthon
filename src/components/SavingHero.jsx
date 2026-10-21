@@ -10,14 +10,15 @@ export default function SavingHero({ t, drug }) {
   const shownSaving = counted >= saved ? saved : Math.round(counted)
 
   return (
-    <div className="bg-emerald-50 px-5 pb-6 pt-5">
+    <div className="bg-emerald-50 px-5 pb-6 pt-5 short:pb-3 short:pt-3">
       <h2 className="text-base font-semibold text-slate-800">{t('genericFor', { brand: drug.brandName })}</h2>
 
       <p className="sr-only">
         {t('heroA11y', { brand: formatInr(brand), generic: formatInr(generic), saved: formatInr(saved), percent })}
       </p>
 
-      <div className="mt-3 flex items-end gap-3" aria-hidden="true">
+      {/* Wraps instead of overflowing when the phone's text size is turned up. */}
+      <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1 short:mt-1" aria-hidden="true">
         <div>
           <div className="text-sm font-medium text-slate-700">{t('brandLabel')}</div>
           <div className="relative text-3xl font-semibold tabular-nums text-slate-600">
@@ -28,13 +29,13 @@ export default function SavingHero({ t, drug }) {
         <Icon name="arrowRight" className="mb-2 size-7 shrink-0 text-slate-500" />
         <div>
           <div className="text-sm font-medium text-emerald-900">{t('genericLabel')}</div>
-          <div className="animate-pop text-6xl font-extrabold leading-none tabular-nums text-emerald-800">
+          <div className="animate-pop text-6xl font-extrabold leading-none tabular-nums text-emerald-800 short:text-5xl">
             {formatInr(generic)}
           </div>
         </div>
       </div>
 
-      <p className="animate-rise mt-4 inline-flex flex-wrap items-center gap-x-2 rounded-full bg-amber-300 px-4 py-2
+      <p className="animate-rise mt-4 short:mt-2 inline-flex flex-wrap items-center gap-x-2 rounded-full bg-amber-300 px-4 py-2
         text-lg font-bold text-slate-900" style={{ '--delay': '350ms' }} aria-hidden="true">
         <span className="tabular-nums">{t('youSave', { amount: formatInr(shownSaving) })}</span>
         <span>·</span>

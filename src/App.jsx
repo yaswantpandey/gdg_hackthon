@@ -141,8 +141,9 @@ export default function App() {
           </main>
         </div>
 
-        <footer className="border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-          <div className="mx-auto flex max-w-md flex-col gap-3">
+        <footer className="border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3
+          short:pb-[max(0.5rem,env(safe-area-inset-bottom))] short:pt-2">
+          <div className="mx-auto flex max-w-md flex-col gap-3 short:gap-2">
             {view === 'search' && totals.lines.length > 0 && (
               <ListChip t={t} count={totals.lines.length} saved={totals.saved} onOpen={openList} />
             )}
