@@ -94,7 +94,8 @@ export default function PrescriptionView({ t, totals, loaded, offline, onPacks, 
 /** Sticky bar above the tab bar: running totals, print, and the disclaimer. */
 export function ListSummaryBar({ t, totals, onPrint }) {
   return (
-    <div className="border-t border-slate-200 bg-white px-4 pb-3 pt-3 shadow-[0_-6px_16px_-8px_rgb(11_31_58/0.15)]" role="status">
+    <div role="status" className="border-t border-slate-200 bg-white px-4 pb-3 pt-3 shadow-[0_-6px_16px_-8px_rgb(11_31_58/0.15)]
+      lg:sticky lg:top-0 lg:rounded-3xl lg:border-0 lg:p-5 lg:shadow-sm lg:ring-1 lg:ring-slate-200">
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-base tabular-nums text-slate-500">

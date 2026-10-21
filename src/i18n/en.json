@@ -120,6 +120,7 @@
   "retake": "Take another photo",
   "scanInstead": "Search with a photo",
   "printShort": "Print",
+  "pickOne": "Pick your medicine from the list on the left",
   "forms": {
     "tablet": "tablets",
     "capsule": "capsules",

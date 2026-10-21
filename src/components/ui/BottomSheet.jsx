@@ -36,14 +36,15 @@ export default function BottomSheet({ t, title, onClose, children }) {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-40 flex items-end justify-center">
+    <div className="fixed inset-0 z-40 flex items-end justify-center lg:items-center lg:p-8">
       <div className="animate-fade-in absolute inset-0 bg-ink/55" onClick={onClose} aria-hidden="true" />
       <section role="dialog" aria-modal="true" aria-labelledby={titleId}
         style={drag ? { transform: `translateY(${drag}px)` } : undefined}
-        className="animate-sheet-in relative flex max-h-[92dvh] w-full max-w-[430px] flex-col rounded-t-3xl bg-white shadow-2xl">
+        className="animate-sheet-in relative flex max-h-[92dvh] w-full max-w-[430px] flex-col rounded-t-3xl bg-white shadow-2xl
+          lg:max-w-lg lg:animate-fade-in lg:rounded-3xl">
         <div className="cursor-grab touch-none px-4 pt-2" onPointerDown={onPointerDown} onPointerMove={onPointerMove}
           onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
-          <div className="mx-auto h-1.5 w-10 rounded-full bg-slate-300" aria-hidden="true" />
+          <div className="mx-auto h-1.5 w-10 rounded-full bg-slate-300 lg:hidden" aria-hidden="true" />
           <div className="mt-1 flex items-center gap-2">
             <h2 id={titleId} ref={heading} tabIndex={-1} className="flex-1 text-xl font-bold text-ink outline-none">{title}</h2>
             <button type="button" onClick={onClose} aria-label={t('close')}

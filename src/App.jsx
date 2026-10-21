@@ -8,6 +8,8 @@ import BottomSheet from './components/ui/BottomSheet.jsx'
 import Toast from './components/ui/Toast.jsx'
 import SearchBar from './components/SearchBar.jsx'
 import SearchView from './components/SearchView.jsx'
+import DesktopSearch from './components/DesktopSearch.jsx'
+import { DESKTOP_QUERY, useMediaQuery } from './lib/useMediaQuery.js'
 import PrescriptionView, { ListSummaryBar } from './components/PrescriptionView.jsx'
 import AboutView, { datasetFacts } from './components/AboutView.jsx'
 import PrintSheet from './components/PrintSheet.jsx'
@@ -59,6 +61,7 @@ export default function App() {
   const scroller = useRef(null)
   const searchInput = useRef(null)
   const t = useMemo(() => makeT(lang), [lang])
+  const isDesktop = useMediaQuery(DESKTOP_QUERY)
   const list = usePrescription()
   const recents = useRecents()
   const totals = useMemo(() => prescriptionTotals(list.items, dataset.drugs), [list.items])
@@ -131,37 +134,59 @@ export default function App() {
   const dismissInstall = () => { setInstallDismissed(true); writePref('installDismissed', '1') }
   const sheetOpen = scanOpen || confirmClear
 
+  // Shared by the phone (SearchView) and laptop (DesktopSearch) layouts.
+  const searchProps = {
+    t, typed, results, selected, others, onPick: (id) => setPicked({ query: deferredQuery, id }),
+    examples: EXAMPLES, recents: recentNames, onExample: setQuery, onClearRecents: recents.clear,
+    install: { show: canInstall && !installDismissed, onInstall: install, onDismiss: dismissInstall },
+    list, onOpenList: () => openScreen('list'), onScan: () => setScanOpen(true),
+  }
+
   return (
     <>
       {/* Phone-width app on every screen size; the page around it is plain on tablets and desktops. */}
       <div inert={sheetOpen}
         className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-slate-50 text-ink shadow-2xl
-          short:max-w-3xl print:hidden">
-        <TopBar t={t} isSample={dataset.meta?.isSample} offline={offline} onToggleLang={() => setLang(lang === 'hi' ? 'en' : 'hi')} />
+          short:max-w-3xl lg:max-w-none lg:shadow-none print:hidden">
+        <TopBar t={t} isSample={dataset.meta?.isSample} offline={offline} onToggleLang={() => setLang(lang === 'hi' ? 'en' : 'hi')}
+          desktopNav={isDesktop ? { current: view, listCount: totals.lines.length, onSelect: onTab } : null} />
 
         <div className="relative flex min-h-0 flex-1 flex-col">
           {toast && (
-            <div className="pointer-events-none absolute inset-x-0 top-3 z-20 px-4">
+            <div className="pointer-events-none absolute inset-x-0 top-3 z-20 px-4 lg:bottom-6 lg:top-auto">
               <Toast key={toast.id} toast={toast} onDone={hideToast} />
             </div>
           )}
 
-          <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-2 pt-4">
-            {/* On Search, content grows upward from the search box so what you tap is near the thumb. */}
-            <div className={`flex w-full flex-col gap-4 ${view === 'search' ? 'mt-auto' : ''}`}>
-              {view === 'about' ? (
-                <AboutView t={t} facts={DATA_FACTS} />
-              ) : view === 'list' ? (
-                <PrescriptionView t={t} totals={totals} loaded={list.loaded} offline={offline}
-                  onPacks={list.setPacks} onRemove={removeWithUndo} onAskClear={() => setConfirmClear(true)} />
-              ) : (
-                <SearchView t={t} typed={typed} results={results} selected={selected} others={others}
-                  onPick={(id) => setPicked({ query: deferredQuery, id })}
-                  examples={EXAMPLES} recents={recentNames} onExample={setQuery} onClearRecents={recents.clear}
-                  install={{ show: canInstall && !installDismissed, onInstall: install, onDismiss: dismissInstall }}
-                  list={list} onOpenList={() => openScreen('list')} onScan={() => setScanOpen(true)} />
-              )}
-            </div>
+          <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-2 pt-4 lg:px-8 lg:py-8">
+            {isDesktop ? (
+              // Laptop: wide, multi-column pages with navigation in the top bar.
+              <div className="mx-auto w-full max-w-6xl">
+                {view === 'about' ? (
+                  <div className="mx-auto max-w-3xl"><AboutView t={t} facts={DATA_FACTS} /></div>
+                ) : view === 'list' ? (
+                  <div className="grid grid-cols-[minmax(0,1fr)_22rem] items-start gap-8">
+                    <PrescriptionView t={t} totals={totals} loaded={list.loaded} offline={offline}
+                      onPacks={list.setPacks} onRemove={removeWithUndo} onAskClear={() => setConfirmClear(true)} />
+                    {totals.lines.length > 0 && <ListSummaryBar t={t} totals={totals} onPrint={() => window.print()} />}
+                  </div>
+                ) : (
+                  <DesktopSearch {...searchProps} query={query} onType={onType} inputRef={searchInput} />
+                )}
+              </div>
+            ) : (
+              // Phone: on Search, content grows upward from the search box so what you tap is near the thumb.
+              <div className={`flex w-full flex-col gap-4 ${view === 'search' ? 'mt-auto' : ''}`}>
+                {view === 'about' ? (
+                  <AboutView t={t} facts={DATA_FACTS} />
+                ) : view === 'list' ? (
+                  <PrescriptionView t={t} totals={totals} loaded={list.loaded} offline={offline}
+                    onPacks={list.setPacks} onRemove={removeWithUndo} onAskClear={() => setConfirmClear(true)} />
+                ) : (
+                  <SearchView {...searchProps} />
+                )}
+              </div>
+            )}
             <p className="sr-only" aria-live="polite">
               {view === 'search' && typed.length >= 3 && (results.length
                 ? t(results.length === 1 ? 'resultsCountOne' : 'resultsCount', { count: results.length })
@@ -169,16 +194,18 @@ export default function App() {
             </p>
           </main>
 
-          {view === 'search' && (
+          {!isDesktop && view === 'search' && (
             <div className="flex flex-col gap-2 border-t border-slate-200 bg-white px-4 py-3 short:gap-1 short:py-2">
               <SearchBar t={t} value={query} onChange={onType} inputRef={searchInput} />
               <Disclaimer t={t} />
             </div>
           )}
-          {view === 'list' && totals.lines.length > 0 && <ListSummaryBar t={t} totals={totals} onPrint={() => window.print()} />}
+          {!isDesktop && view === 'list' && totals.lines.length > 0 && (
+            <ListSummaryBar t={t} totals={totals} onPrint={() => window.print()} />
+          )}
         </div>
 
-        <TabBar t={t} current={view} listCount={totals.lines.length} onSelect={onTab} />
+        {!isDesktop && <TabBar t={t} current={view} listCount={totals.lines.length} onSelect={onTab} />}
       </div>
 
       <Suspense fallback={null}>
