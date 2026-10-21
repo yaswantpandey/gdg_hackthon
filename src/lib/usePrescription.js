@@ -23,6 +23,9 @@ export function usePrescription() {
   const setPacks = (drugId, packs) => setItems((list) =>
     list.map((it) => (it.drugId === drugId ? { ...it, packs: Math.max(1, Math.min(MAX_PACKS, packs)) } : it)))
   const clear = () => setItems([])
+  /** Puts a removed item back where it was (for "Undo"). */
+  const restore = (item, index) => setItems((list) =>
+    (list.some((it) => it.drugId === item.drugId) ? list : [...list.slice(0, index), item, ...list.slice(index)]))
 
-  return { items, has, add, remove, setPacks, clear }
+  return { items, loaded, has, add, remove, restore, setPacks, clear }
 }

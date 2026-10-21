@@ -1,40 +1,35 @@
 import CandidateList from './CandidateList.jsx'
 import ResultCard from './ResultCard.jsx'
+import AddToListBar from './AddToListBar.jsx'
 import EmptyState from './EmptyState.jsx'
 import NotFound from './NotFound.jsx'
 import InstallCard from './InstallCard.jsx'
-import { ScanFailed, ScanRead, ScanReading } from './ScanPanel.jsx'
 
-// The search screen: scan status, then empty / not found / result + other matches.
+// The search tab: empty (recents / examples) → not found → result + other matches.
+// Search runs synchronously over the bundled data, so there is no loading state here.
 export default function SearchView({
-  t, query, typed, results, selected, others, onPick, examples, onExample,
-  scan, onCancelScan, onFocusSearch, install, list, onOpenList,
+  t, typed, results, selected, others, onPick, examples, recents, onExample, onClearRecents,
+  install, list, onOpenList, onScan,
 }) {
-  const showScanRead = scan.status === 'read' && scan.text === query
-  const scanBusy = scan.status === 'reading' || scan.status === 'failed'
+  if (typed.length < 3) {
+    return (
+      <>
+        <EmptyState t={t} recents={recents} examples={examples} onPick={onExample} onClearRecents={onClearRecents} />
+        {install.show && <InstallCard t={t} onInstall={install.onInstall} onDismiss={install.onDismiss} />}
+      </>
+    )
+  }
+  if (results.length === 0) return <NotFound t={t} query={typed} onScan={onScan} />
 
   return (
     <>
-      {scan.status === 'reading' && <ScanReading t={t} previewUrl={scan.previewUrl} onCancel={onCancelScan} />}
-      {scan.status === 'failed' && <ScanFailed t={t} reason={scan.reason} onType={() => onFocusSearch(false)} />}
-      {showScanRead && <ScanRead t={t} text={scan.text} onEdit={() => onFocusSearch(true)} />}
-
-      {scanBusy ? null : typed.length < 3 ? (
+      {selected && (
         <>
-          <EmptyState t={t} examples={examples} onPick={onExample} />
-          {install.show && <InstallCard t={t} onInstall={install.onInstall} onDismiss={install.onDismiss} />}
-        </>
-      ) : results.length === 0 ? (
-        <NotFound t={t} query={typed} />
-      ) : (
-        <>
-          {selected && (
-            <ResultCard key={selected.drug.id} t={t} match={selected}
-              inList={list.has(selected.drug.id)} onAdd={() => list.add(selected.drug.id)} onOpenList={onOpenList} />
-          )}
-          <CandidateList key={typed} t={t} title={selected ? t('otherMatches') : t('didYouMean')} candidates={others} onPick={onPick} />
+          <ResultCard key={selected.drug.id} t={t} match={selected} />
+          <AddToListBar t={t} inList={list.has(selected.drug.id)} onAdd={() => list.add(selected.drug.id)} onOpenList={onOpenList} />
         </>
       )}
+      <CandidateList key={typed} t={t} title={selected ? t('otherMatches') : t('didYouMean')} candidates={others} onPick={onPick} />
     </>
   )
 }

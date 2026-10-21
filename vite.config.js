@@ -42,14 +42,14 @@ export default defineConfig(({ mode }) => {
         // Precache the whole app: HTML, JS (which includes drugs.json), CSS and icons.
         // After the first visit, typed search never touches the network.
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+          globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff2}'],
           navigateFallback: 'index.html',
           navigateFallbackDenylist: [/^\/api\//], // never answer API calls from cache
           cleanupOutdatedCaches: true,
         },
         manifest: {
           id: '/',
-          name: 'सस्ती दवा — Sasti Dawa',
+          name: 'mydawa',
           short_name: 'सस्ती दवा',
           description: 'ब्रांड दवा का जेनेरिक नाम, ताकत और दाम में बचत देखें — बिना इंटरनेट भी। Find the generic name and price saving for a brand-name medicine, even offline.',
           lang: 'hi',

@@ -5,6 +5,17 @@ import en from './en.json' with { type: 'json' }
 const DICTS = { hi, en }
 export const LANGS = Object.keys(DICTS)
 
+const MARK = '\u0000'
+
+/**
+ * Like t(), but puts a React node (e.g. an animated number) where {placeholder} sits,
+ * whatever word order the translation uses.
+ */
+export function tNode(t, key, placeholder, node) {
+  const [before, after = ''] = t(key, { [placeholder]: MARK }).split(MARK)
+  return [before, node, after]
+}
+
 /** Returns t(key, vars) for a language. Falls back to English, then the key itself. */
 export function makeT(lang) {
   const dict = DICTS[lang] ?? en

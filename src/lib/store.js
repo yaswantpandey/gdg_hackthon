@@ -1,7 +1,7 @@
 // Tiny IndexedDB key-value store (no library). Works offline and survives restarts.
 // Falls back to memory when IndexedDB is unavailable (some private modes).
 
-const DB_NAME = 'sasti-dawa'
+const DB_NAME = 'my-dawa'
 const STORE = 'kv'
 const memory = new Map()
 let dbPromise

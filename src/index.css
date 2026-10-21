@@ -4,14 +4,44 @@
 @custom-variant short (@media (max-height: 480px));
 
 @theme {
-  /* System fonts: Android already ships Noto Sans Devanagari, so nothing to download. */
-  --font-sans: "Noto Sans Devanagari", "Noto Sans", system-ui, sans-serif;
+  /* Inter for Latin, Noto Sans Devanagari for Hindi; self-hosted (see fonts.css), system fallback. */
+  --font-sans: "Inter Variable", "Noto Sans Devanagari Variable", "Noto Sans Devanagari", system-ui, sans-serif;
 
-  /* Motion tokens: short, decelerating, one rhythm across the app. */
+  /* ---- Design tokens: use these names in components, never raw palette colours ---- */
+  /* Text: navy */
+  --color-ink: #0b1f3a;
+  /* Primary actions: teal */
+  --color-brand-50: var(--color-teal-50);
+  --color-brand-100: var(--color-teal-100);
+  --color-brand-200: var(--color-teal-200);
+  --color-brand-600: var(--color-teal-600);
+  --color-brand-700: var(--color-teal-700);
+  --color-brand-800: var(--color-teal-800);
+  --color-brand-900: var(--color-teal-900);
+  /* Saving highlight only: amber */
+  --color-save-50: var(--color-amber-50);
+  --color-save-300: var(--color-amber-300);
+  --color-save-400: var(--color-amber-400);
+  --color-save-500: var(--color-amber-500);
+  /* Warnings only: red */
+  --color-warn-50: var(--color-red-50);
+  --color-warn-200: var(--color-red-200);
+  --color-warn-300: var(--color-red-300);
+  --color-warn-600: var(--color-red-600);
+  --color-warn-700: var(--color-red-700);
+  --color-warn-800: var(--color-red-800);
+
+  /* Motion tokens: transform/opacity only, all under 300 ms, decelerating in, faster out. */
   --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --animate-rise: rise 320ms var(--ease-out-soft) var(--delay, 0ms) both;
-  --animate-strike: strike 360ms var(--ease-out-soft) 150ms both;
-  --animate-pop: pop 420ms var(--ease-out-soft) 280ms both;
+  --ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+  --animate-rise: rise 240ms var(--ease-out-soft) var(--delay, 0ms) both;
+  --animate-strike: strike 220ms var(--ease-out-soft) 80ms both;
+  --animate-pop: pop 260ms var(--ease-out-soft) 120ms both;
+  --animate-sheet-in: sheet-in 260ms var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
+  --animate-shimmer: shimmer 1.2s linear infinite;
+  /* Looping progress indicators (like a spinner), not transitions: allowed to exceed 300 ms. */
+  --animate-scan-line: scan-line 1.4s ease-in-out infinite alternate;
 
   @keyframes rise {
     from { opacity: 0; transform: translateY(12px); }
@@ -22,9 +52,25 @@
     to { transform: scaleX(1); }
   }
   @keyframes pop {
-    0% { opacity: 0; transform: scale(0.85); }
-    60% { opacity: 1; transform: scale(1.04); }
+    0% { opacity: 0; transform: scale(0.88); }
+    70% { opacity: 1; transform: scale(1.03); }
     100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes scan-line {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+  }
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
   }
 }
 
@@ -32,6 +78,11 @@ html {
   color-scheme: light;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+body {
+  /* Outside the phone-width app container on tablets and desktops. */
+  background: var(--color-slate-200);
 }
 
 /* Printing shows only <PrintSheet>: plain black on white, A4 with sensible margins. */
