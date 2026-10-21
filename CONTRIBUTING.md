@@ -31,7 +31,8 @@ Thanks for helping people stop overpaying for medicine! Contributions of every s
    npm run build
    npm run preview             # http://localhost:4173, also on your LAN for phone testing
    ```
-6. (Optional) Photo scan: install [Ollama](https://ollama.com/), pull a Gemma 4 vision model, and run the proxy in `server/` (instructions arrive with the proxy).
+6. (Optional) Photo scan: either install [Ollama](https://ollama.com/) and run `ollama pull gemma4:e2b`, or put a Google AI Studio key in `.env` with `GEMMA_PROVIDER=hosted`. Then run `npm run server` in a second terminal. See "Run it" in the [README](README.md).
+7. Run the tests before opening a PR: `npm test`.
 
 ## Project layout
 
