@@ -10,11 +10,14 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "test": "node --test \"tests/**/*.test.js\"",
+    "server": "node --env-file-if-exists=.env server/index.js",
     "data:validate": "node scripts/validate.js",
     "data:clean": "node scripts/clean.js",
     "i18n:review": "node scripts/print-strings.js"
   },
   "dependencies": {
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
     "fuse.js": "^7.5.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

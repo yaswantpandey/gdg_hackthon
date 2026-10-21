@@ -12,7 +12,9 @@ import Disclaimer from './components/Disclaimer.jsx'
 import OfflineBar from './components/OfflineBar.jsx'
 import ReadyToast from './components/ReadyToast.jsx'
 import InstallCard from './components/InstallCard.jsx'
+import { ScanFailed, ScanRead, ScanReading } from './components/ScanPanel.jsx'
 import { useInstallPrompt, useOffline, useOfflineReady } from './lib/pwa.js'
+import { useScan } from './lib/useScan.js'
 
 const search = createSearch(dataset.drugs)
 const EXAMPLES = dataset.drugs.slice(0, 3).map((d) => d.brandName)
@@ -42,7 +44,9 @@ export default function App() {
   const [query, setQuery] = useState(() => new URLSearchParams(location.search).get('q') ?? '') // ?q= deep link
   const [picked, setPicked] = useState(null) // { query, id }: only valid for the query it was made on
   const scroller = useRef(null)
+  const searchInput = useRef(null)
   const t = useMemo(() => makeT(lang), [lang])
+  const { scan, start: startScan, cancel: cancelScan, clear: clearScan } = useScan(setQuery)
 
   const deferredQuery = useDeferredValue(query)
   const results = useMemo(() => search(deferredQuery), [deferredQuery])
@@ -64,47 +68,69 @@ export default function App() {
 
   const pick = (id) => setPicked({ query: deferredQuery, id })
 
+  // Typing takes over from a scan; the "read from photo" note stays only while the text is unchanged.
+  const onType = (value) => {
+    setQuery(value)
+    if (scan.status === 'failed') clearScan()
+  }
+  const focusSearch = (selectAll) => {
+    clearScan()
+    searchInput.current?.focus()
+    if (selectAll) searchInput.current?.select()
+  }
+  const showScanRead = scan.status === 'read' && scan.text === query
+
   return (
     <div className="flex h-dvh flex-col bg-slate-50 text-slate-900">
       <Header t={t} isSample={dataset.meta?.isSample} onToggleLang={() => setLang(lang === 'hi' ? 'en' : 'hi')} />
       {offline && <OfflineBar t={t} />}
 
-      {/* Content grows upward from the search bar, so the thing to tap is near the thumb. */}
-      <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
-        <div className="mx-auto mt-auto flex w-full max-w-md flex-col gap-4">
-          {typed.length < 3 ? (
-            <>
-              <EmptyState t={t} examples={EXAMPLES} onPick={setQuery} />
-              {canInstall && !installDismissed && <InstallCard t={t} onInstall={install} onDismiss={dismissInstall} />}
-            </>
-          ) : results.length === 0 ? (
-            <NotFound t={t} query={typed} />
-          ) : (
-            <>
-              {selected && <ResultCard key={selected.drug.id} t={t} match={selected} />}
-              <CandidateList
-                key={deferredQuery}
-                t={t}
-                title={selected ? t('otherMatches') : t('didYouMean')}
-                candidates={others}
-                onPick={pick}
-              />
-            </>
-          )}
-        </div>
-        <p className="sr-only" aria-live="polite">
-          {typed.length >= 3 && (results.length ? t('resultsCount', { count: results.length }) : t('notFoundTitle'))}
-        </p>
-      </main>
-
-      <footer className="relative border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {/* One-time toast sits at the top, away from the controls near the thumb. */}
         {offlineReady && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-full mb-3 px-4">
+          <div className="pointer-events-none absolute inset-x-0 top-3 z-10 px-4">
             <ReadyToast t={t} onDone={hideReady} />
           </div>
         )}
+        {/* Content grows upward from the search bar, so the thing to tap is near the thumb. */}
+        <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
+          <div className="mx-auto mt-auto flex w-full max-w-md flex-col gap-4">
+            {scan.status === 'reading' && <ScanReading t={t} previewUrl={scan.previewUrl} onCancel={cancelScan} />}
+            {scan.status === 'failed' && <ScanFailed t={t} reason={scan.reason} onType={() => focusSearch(false)} />}
+            {showScanRead && <ScanRead t={t} text={scan.text} onEdit={() => focusSearch(true)} />}
+  
+            {scan.status === 'reading' || scan.status === 'failed' ? null : typed.length < 3 ? (
+              <>
+                <EmptyState t={t} examples={EXAMPLES} onPick={setQuery} />
+                {canInstall && !installDismissed && <InstallCard t={t} onInstall={install} onDismiss={dismissInstall} />}
+              </>
+            ) : results.length === 0 ? (
+              <NotFound t={t} query={typed} />
+            ) : (
+              <>
+                {selected && <ResultCard key={selected.drug.id} t={t} match={selected} />}
+                <CandidateList
+                  key={deferredQuery}
+                  t={t}
+                  title={selected ? t('otherMatches') : t('didYouMean')}
+                  candidates={others}
+                  onPick={pick}
+                />
+              </>
+            )}
+          </div>
+          <p className="sr-only" aria-live="polite">
+            {typed.length >= 3 && (results.length
+              ? t(results.length === 1 ? 'resultsCountOne' : 'resultsCount', { count: results.length })
+              : t('notFoundTitle'))}
+          </p>
+        </main>
+      </div>
+
+      <footer className="border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto flex max-w-md flex-col gap-3">
-          <SearchBar t={t} value={query} onChange={setQuery} />
+          <SearchBar t={t} value={query} onChange={onType} inputRef={searchInput}
+            onPhoto={startScan} scanning={scan.status === 'reading'} />
           <Disclaimer t={t} />
         </div>
       </footer>

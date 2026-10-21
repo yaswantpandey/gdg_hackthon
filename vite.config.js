@@ -15,6 +15,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//], // never answer API calls from cache
         cleanupOutdatedCaches: true,
       },
       manifest: {
@@ -40,8 +41,7 @@ export default defineConfig({
       },
     }),
   ],
-  server: {
-    // The Gemma proxy (server/) runs on 8787; forward /api to it in dev.
-    proxy: { '/api': 'http://localhost:8787' },
-  },
+  // The OCR proxy (server/) runs on 8787; forward /api to it in dev and preview.
+  server: { proxy: { '/api': 'http://localhost:8787' } },
+  preview: { proxy: { '/api': 'http://localhost:8787' } },
 })
