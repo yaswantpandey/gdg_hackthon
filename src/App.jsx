@@ -9,13 +9,21 @@ import ResultCard from './components/ResultCard.jsx'
 import EmptyState from './components/EmptyState.jsx'
 import NotFound from './components/NotFound.jsx'
 import Disclaimer from './components/Disclaimer.jsx'
+import OfflineBar from './components/OfflineBar.jsx'
+import ReadyToast from './components/ReadyToast.jsx'
+import InstallCard from './components/InstallCard.jsx'
+import { useInstallPrompt, useOffline, useOfflineReady } from './lib/pwa.js'
 
 const search = createSearch(dataset.drugs)
 const EXAMPLES = dataset.drugs.slice(0, 3).map((d) => d.brandName)
 const AUTO_PICK = 0.9 // show the card straight away only for a clear winner
 
-function loadLang() {
-  try { return localStorage.getItem('lang') ?? 'hi' } catch { return 'hi' }
+// localStorage can throw in private mode; preferences are a nice-to-have.
+function readPref(key, fallback) {
+  try { return localStorage.getItem(key) ?? fallback } catch { return fallback }
+}
+function writePref(key, value) {
+  try { localStorage.setItem(key, value) } catch { /* ignore */ }
 }
 
 /** Top result wins outright if it is confident and clearly ahead of the next one. */
@@ -26,7 +34,11 @@ function clearWinner(results) {
 }
 
 export default function App() {
-  const [lang, setLang] = useState(loadLang)
+  const [lang, setLang] = useState(() => readPref('lang', 'hi'))
+  const [installDismissed, setInstallDismissed] = useState(() => readPref('installDismissed', '') === '1')
+  const offline = useOffline()
+  const [offlineReady, hideReady] = useOfflineReady()
+  const { canInstall, install } = useInstallPrompt()
   const [query, setQuery] = useState(() => new URLSearchParams(location.search).get('q') ?? '') // ?q= deep link
   const [picked, setPicked] = useState(null) // { query, id }: only valid for the query it was made on
   const scroller = useRef(null)
@@ -42,8 +54,10 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.lang = lang
-    try { localStorage.setItem('lang', lang) } catch { /* private mode: fine */ }
+    writePref('lang', lang)
   }, [lang])
+
+  const dismissInstall = () => { setInstallDismissed(true); writePref('installDismissed', '1') }
 
   // New result → bring the hero into view.
   useEffect(() => { scroller.current?.scrollTo({ top: 0 }) }, [selected?.drug.id])
@@ -53,12 +67,16 @@ export default function App() {
   return (
     <div className="flex h-dvh flex-col bg-slate-50 text-slate-900">
       <Header t={t} isSample={dataset.meta?.isSample} onToggleLang={() => setLang(lang === 'hi' ? 'en' : 'hi')} />
+      {offline && <OfflineBar t={t} />}
 
       {/* Content grows upward from the search bar, so the thing to tap is near the thumb. */}
       <main ref={scroller} className="flex flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
         <div className="mx-auto mt-auto flex w-full max-w-md flex-col gap-4">
           {typed.length < 3 ? (
-            <EmptyState t={t} examples={EXAMPLES} onPick={setQuery} />
+            <>
+              <EmptyState t={t} examples={EXAMPLES} onPick={setQuery} />
+              {canInstall && !installDismissed && <InstallCard t={t} onInstall={install} onDismiss={dismissInstall} />}
+            </>
           ) : results.length === 0 ? (
             <NotFound t={t} query={typed} />
           ) : (
@@ -79,7 +97,12 @@ export default function App() {
         </p>
       </main>
 
-      <footer className="border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+      <footer className="relative border-t-2 border-slate-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+        {offlineReady && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-full mb-3 px-4">
+            <ReadyToast t={t} onDone={hideReady} />
+          </div>
+        )}
         <div className="mx-auto flex max-w-md flex-col gap-3">
           <SearchBar t={t} value={query} onChange={setQuery} />
           <Disclaimer t={t} />

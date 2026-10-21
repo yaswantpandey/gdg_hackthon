@@ -9,24 +9,33 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Precache everything the app needs, including the drug dataset,
-      // so search works in aeroplane mode after the first visit.
+      includeManifestIcons: false, // already matched by globPatterns; avoids duplicate precache entries
+      // Precache the whole app: HTML, JS (which includes drugs.json), CSS and icons.
+      // After the first visit, typed search never touches the network.
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
-        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: 'दवा का सस्ता नाम — The Prescription You Cannot Read',
-        short_name: 'Sasti Dawa',
-        description: 'Find the generic name, strength and price saving for a brand-name medicine.',
+        id: '/',
+        name: 'सस्ती दवा — Sasti Dawa',
+        short_name: 'सस्ती दवा',
+        description: 'ब्रांड दवा का जेनेरिक नाम, ताकत और दाम में बचत देखें — बिना इंटरनेट भी। Find the generic name and price saving for a brand-name medicine, even offline.',
         lang: 'hi',
+        dir: 'ltr',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#ffffff',
-        theme_color: '#047857',
+        background_color: '#f8fafc',
+        theme_color: '#065f46',
+        categories: ['medical', 'health'],
         icons: [
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),

@@ -31,6 +31,12 @@
   "source": "Source",
   "updated": "Updated",
   "resultsCount": "{count} medicines found",
+  "offlineBadge": "No internet — search still works",
+  "offlineReady": "Ready to work without internet",
+  "installTitle": "Add to home screen",
+  "installHint": "Opens in one tap, even offline",
+  "install": "Add",
+  "notNow": "Not now",
   "disclaimer": "Price and molecule information only, not medical advice. Confirm with your doctor or pharmacist.",
   "forms": { "tablet": "tablets", "capsule": "capsules", "syrup": "syrup", "injection": "injection" },
   "formNames": { "tablet": "Tablet", "capsule": "Capsule", "syrup": "Syrup", "injection": "Injection" }
